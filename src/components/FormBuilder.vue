@@ -27,6 +27,7 @@
           :type="item.type"
           v-model="passwordValues[item.name]"
         />
+        <span v-if="item.type === 'password' && item.additional && passwordMismatch" class="error">Пароли не совпадают</span>
       </template>
       <div class="form-builder__buttons">
         <button type="reset" class="button button_reset">Стереть</button>
@@ -53,38 +54,33 @@ export default {
       inputValues: {},
       selectValues: {},
       radioValues: {},
-      passwordValues: {}
+      passwordValues: {},
+      passwordMismatch: false
     };
   },
   methods: {
     onSubmit() {    
-      if (this.passwordValues.pass === this.passwordValues['repeat-pass']) {
-        const formData = {
-          name: this.inputValues.name,
-          gender: this.selectValues.gender,
-          age: parseInt(this.radioValues.age),
-          pass: this.passwordValues.pass,
-        };
+      if (this.passwordValues.pass === this.passwordValues['repeat-pass']) { 
+        this.passwordMismatch = false;      
+        const formData = {};
 
-        const userData = {
-          [this.user.name]: formData
-        };
+        Object.assign(formData, this.inputValues);
+        Object.assign(formData, this.selectValues);
+        Object.assign(formData, this.radioValues);
+        Object.assign(formData, {pass: parseInt(this.passwordValues.pass)});
 
-        console.log("Form data:", userData);
+        console.log(formData)
 
-        // Отправляем запрос с помощью Axios
-        axios.post('https://google.com/endpoint', userData)
+        axios.post('https://google.com/endpoint', formData)
           .then(response => {
             console.log('Response from server:', response.data);
             alert('Запрос успешно отправлен');
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('Произошла ошибка при отправке запроса');
           });
       } else {
-        // Если пароли не совпадают, выводим сообщение об ошибке
-        alert('Пароли не совпадают');
+        this.passwordMismatch = true;  
       }
     }
   },
@@ -135,6 +131,9 @@ export default {
         box-shadow: 0px 0px 10px 2px rgba(163, 70, 244, 0.3);
         max-width: 100px;
       }
+    }
+    .error {
+      color: red;
     }
   }
 }
